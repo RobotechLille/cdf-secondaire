@@ -98,6 +98,8 @@ void stop() {
 
 int tempsRestant = 0;
 
+#define PUISSANCE_RAPIDE 400
+#define PUISSANCE_LENTE 100
 // en mm/sec
 #define VIT_RAPIDE 0.1
 #define VIT_LENTE 0.03
@@ -165,12 +167,36 @@ void avancer(float dist) {
     Serial.println(")");
 }
 
-void tournerVraieDroite() {
+#define PUISSANCE_ROTATION 12
+
+void tourne(bool sens) {
+    // Sens : true ↔ droite, false ↔ gauche
     // TODO
 }
 
+// en secondes
+#define TEMPS_ANGLE_DROIT 0.4
+
+void tournerVraieDroite() {
+    tempsRestant = TEMPS_AGNGLE_DROIT * FREQ_ECH;
+    Timer3.initialize(1E6 / FREQ_ECH);
+    tourne(true);
+    Timer3.attachInterrupt(stepMouvement);
+    while (tempsRestant > 0) {
+        continue;
+    }
+    Timer3.detachInterrupt();
+}
+
 void tournerVraieGauche() {
-    // TODO
+    tempsRestant = TEMPS_AGNGLE_DROIT * FREQ_ECH;
+    Timer3.initialize(1E6 / FREQ_ECH);
+    tourne(true);
+    Timer3.attachInterrupt(stepMouvement);
+    while (tempsRestant > 0) {
+        continue;
+    }
+    Timer3.detachInterrupt();
 }
 
 void tournerDroite() {
