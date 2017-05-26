@@ -244,10 +244,13 @@ void seconde() {
 }
 
 void parcours() {
-    avancer(800 - x);
+    avancer(1100 - 200);
     tournerDroite();
-    avancer(500 - y);
-    /* ouvrirPont(); */
+    avancer(700 - 200);
+    tournerDroite();
+    avancer(1100 - 1000);
+    tournerDroite();
+    avancer(700 - 0);
 }
 
 
