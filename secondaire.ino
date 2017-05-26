@@ -12,12 +12,32 @@ void attendreTirette() {
     }
 }
 
-bool capteurAvant() {
+#define PIN_COTE 42
+bool bleu = true;
+void lireCote() {
+    bleu = digitalRead(PIN_COTE) == LOW;
+}
 
+#define PIN_ULT_AV_TRIG 42
+#define PIN_ULT_AV_ECHO 42
+
+#define SEUIL_OBSTACLE 120
+bool capteurAvant() {
+    digitalWrite(PIN_ULT_AV_TRIG , HIGH);
+    delayMicroseconds(10);
+    digitalWrite(PIN_ULT_AV_TRIG, LOW);
+    unsigned long lecture_echo = pulseIn(PIN_ULT_AV_ECHO, HIGH);
+    float mm = lecture_echo / 580;
+    return mm < SEUIL_OBSTACLE;
 }
 
 bool capteurArriere() {
-
+    digitalWrite(PIN_ULT_AR_TRIG , HIGH);
+    delayMicroseconds(10);
+    digitalWrite(PIN_ULT_AR_TRIG, LOW);
+    unsigned long lecture_echo = pulseIn(PIN_ULT_AR_ECHO, HIGH);
+    float mm = lecture_echo / 580;
+    return mm < SEUIL_OBSTACLE;
 }
 
 bool capteurBoule() {
@@ -46,13 +66,53 @@ void baisserBras() {
 
 // DIRECTION
 
+float x, y;
+char dir; // [0-3], sens trigo
+
 void stop() {
 
 }
 
-void avance(float dist) {
-    // Ou recule
+bool enMouvement = false;
+SimpleTimer timer;
+int mouvTimeout;
 
+// en mm / sec
+#define VIT_RAPIDE 100
+#define VIT_LENTE 25
+
+void finMouvement() {
+    stop();
+    enMouvement = false;
+}
+
+void avance(float vitesse) {
+    // TODO
+}
+
+void avancer(float dist) {
+    // Ou recule
+    int temps = abs(VIT_RAPIDE * dist);
+    bool marcheAvant = dist > 0;
+    avance(VIT_RAPIDE * (marcheAvant : 1 : -1));
+    mouvTimeout = timer.setTimeout(temps, finMouvement);
+    enMouvement = true;
+    bool obstacle;
+    while (enMouvement) {
+        if (marcheAvant) {
+            obstacle = capteurAvant();
+        } else {
+            obstacle = capteurArriere();
+        }
+        if (obstacle) {
+            timer.disable(mouvTimeout);
+            stop();
+        } else {
+            timer.enable(mouvTimeout);
+            avance(VIT_RAPIDE * (marcheAvant : 1 : -1));
+        }
+    }
+    stop();
 }
 
 void tournerDroite() {
@@ -75,7 +135,6 @@ void fin() {
 
 int tempsEcoule = 0;
 #define DUREE_JEU 5
-SimpleTimer timer;
 int secondI;
 
 void seconde() {
@@ -89,6 +148,9 @@ void seconde() {
 }
 
 void parcours() {
+    avance(900-200);
+    tournerDroite();
+
 
 }
 
@@ -97,9 +159,10 @@ void parcours() {
 
 void setup() {
     Serial.begin(9600);
-    Serial.println("Setup");
+    Serial.println("Initialisation");
 
-    // Initialisation des broches
+    pinMode(PIN_TIRETTE, INPUT);
+    pinMode(PIN_COTE, INPUT);
 
     Serial.println("Setup terminé. Attente de la tirette");
 
@@ -108,6 +171,11 @@ void setup() {
     Serial.println("Tirette tirée. C'est parti !");
 
     secondI = timer.setInterval(1000, seconde);
+
+    lireCote();
+
+    Serial.print("On est du côté ");
+    Serial.println(bleu ? "bleu" : "jaune");
 
     parcours();
 
