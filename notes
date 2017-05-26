@@ -1,0 +1,17 @@
+Avance, passe la plate-forme, tiourne 90**° droite, attrappe plusieurs balles (1 par bras 5 dans soute)
+servo pont-levis
+capteur à ultrasons où vue sur base vois si balle
+2 mcc avance
+que angles droits
+avance jusque balle
+capt ultrason avant et arrière
+
+
+demoAmau
+elements/
+    servo → servo
+    mcc → ultramotor
+
+general/
+    robotsecondaire un truc comme ça
+
