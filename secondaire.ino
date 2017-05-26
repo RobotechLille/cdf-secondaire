@@ -23,13 +23,15 @@ void lireCote() {
 
 #define SEUIL_OBSTACLE 120
 
-#define PIN_ULT_AV_TRIG 42
-#define PIN_ULT_AV_ECHO 42
+#define PIN_ULT_AV_TRIG 22
+#define PIN_ULT_AV_ECHO 24
 bool capteurAvant() {
     digitalWrite(PIN_ULT_AV_TRIG , HIGH);
     delayMicroseconds(10);
     digitalWrite(PIN_ULT_AV_TRIG, LOW);
     unsigned long lecture_echo = pulseIn(PIN_ULT_AV_ECHO, HIGH, 60);
+    Serial.print("Capteur");
+    Serial.println(lecture_echo);
     float mm = lecture_echo / 580;
     return mm < SEUIL_OBSTACLE;
 }
@@ -116,7 +118,7 @@ int tempsRestant = 0;
 #define PUISSANCE_RAPIDE 400
 #define PUISSANCE_LENTE 100
 // en mm/sec
-#define VIT_RAPIDE 0.1
+#define VIT_RAPIDE 20
 #define VIT_LENTE 0.03
 
 void stepMouvement() {
@@ -128,29 +130,34 @@ void stepMouvement() {
 
 // void avance(float vitesse) {
 void avance() {
-    digitalWrite (IN1, HIGH);
-    digitalWrite (IN2, LOW);
-    digitalWrite (IN3, HIGH);
-    digitalWrite (IN4, LOW);
+    digitalWrite (IN1, LOW);
+    digitalWrite (IN2, HIGH);
+    digitalWrite (IN3, LOW);
+    digitalWrite (IN4, HIGH);
     analogWrite (enA, 90);
     analogWrite (enB, 60);
 }
 
-#define FREQ_ECH 100
+#define FREQ_ECH 5
 
 void avancer(float dist) {
     Serial.print("On va avancer de ");
     Serial.println(dist);
     // Ou recule
     float temps = abs(VIT_RAPIDE * dist); // en seconde
+    Serial.print("Temps ");
+    Serial.println(temps);
     tempsRestant = temps * FREQ_ECH;
     bool marcheAvant = dist > 0;
-    Timer3.initialize(1E6 / FREQ_ECH);
+    Timer3.initialize((int) (1E6 / FREQ_ECH));
     bool obstacle = false, lastObstacle = true;
     while (tempsRestant > 0) {
         // Si obstacle a changé (ou si c'est le premier tour vu les valeurs d'initialisation)
+        // Serial.print("Restant ");
+        // Serial.println(tempsRestant);
         if (obstacle != lastObstacle) {
             if (obstacle) {
+                Serial.println("Obstacle !");
                 stop();
                 Timer3.detachInterrupt();
             } else {
@@ -160,6 +167,8 @@ void avancer(float dist) {
             }
         }
 
+        lastObstacle = obstacle;
+        Serial.println("171");
         if (marcheAvant) {
             obstacle = capteurAvant();
         } else {
@@ -256,27 +265,27 @@ void fin() {
 }
 
 int tempsEcoule = 0;
-#define DUREE_JEU 5
+#define DUREE_JEU 90
 int secondI;
 
 void seconde() {
     tempsEcoule++;
     Serial.print("Temps = ");
     Serial.println(tempsEcoule);
-    if (tempsEcoule == DUREE_JEU) {
+    if (tempsEcoule >= DUREE_JEU) {
         fin();
         Timer1.detachInterrupt();
     }
 }
 
 void parcours() {
-    /* avancer(1100 - 200); */
-    /* tournerDroite(); */
-    /* avancer(700 - 200); */
-    /* tournerDroite(); */
-    /* avancer(1100 - 1000); */
-    /* tournerDroite(); */
-    /* avancer(700 - 0); */
+    avancer(1100 - 200);
+    tournerDroite();
+    avancer(700 - 200);
+    tournerDroite();
+    avancer(1100 - 1000);
+    tournerDroite();
+    avancer(700 - 0);
 }
 
 
@@ -328,8 +337,11 @@ void setup() {
     // DEBUG
     avance();
     // tourne(true);
-    delay(10000);
+    delay(5000);
     stop();
+    /* while(true) { */
+    /*     capteurAvant(); */
+    /* } */
 
 }
 
