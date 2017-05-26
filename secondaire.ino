@@ -1,11 +1,13 @@
 #include <Arduino.h>
-#include <SimpleTimer.h>
+#include <TimerOne.h>
+#include <TimerThree.h>
 
 // CONVENTIONS
 // distances = mm
+// ne pas utiliser les broches 9, 10, 11 et 12 (utilisées par les timers)
 
 // CAPTEURS
-#define PIN_TIRETTE 42
+#define PIN_TIRETTE 31
 void attendreTirette() {
     while (digitalRead(PIN_TIRETTE) == HIGH) {
         continue;
@@ -75,46 +77,53 @@ void stop() {
 
 }
 
-bool enMouvement = false;
-SimpleTimer timer;
-int mouvTimeout;
+int tempsRestant = 0;
 
-// en mm / sec
-#define VIT_RAPIDE 100
-#define VIT_LENTE 25
+// en mm/sec
+#define VIT_RAPIDE 0.1
+#define VIT_LENTE 0.03
 
-void finMouvement() {
-    stop();
-    enMouvement = false;
+void stepMouvement() {
+    tempsRestant--;
+    if (tempsRestant <= 0) {
+        stop();
+    }
 }
 
 void avance(float vitesse) {
     // TODO
 }
 
+#define FREQ_ECH 100
+
 void avancer(float dist) {
+    Serial.print("On va avancer de ");
+    Serial.println(dist);
     // Ou recule
-    int temps = abs(VIT_RAPIDE * dist);
+    float temps = abs(VIT_RAPIDE * dist); // en seconde
+    tempsRestant = temps * FREQ_ECH;
     bool marcheAvant = dist > 0;
-    avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
-    mouvTimeout = timer.setTimeout(temps, finMouvement);
-    enMouvement = true;
-    bool obstacle;
-    while (enMouvement) {
-        Serial.println(104);
+    Timer3.initialize(1E6 / FREQ_ECH);
+    bool obstacle = false, lastObstacle = true;
+    while (tempsRestant > 0) {
+        // Si obstacle a changé (ou si c'est le premier tour vu les valeurs d'initialisation)
+        if (obstacle != lastObstacle) {
+            if (obstacle) {
+                stop();
+                Timer3.detachInterrupt();
+            } else {
+                avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
+                Timer3.attachInterrupt(stepMouvement);
+            }
+        }
+
         if (marcheAvant) {
             obstacle = capteurAvant();
         } else {
             obstacle = capteurArriere();
         }
-        if (obstacle) {
-            timer.disable(mouvTimeout);
-            stop();
-        } else {
-            timer.enable(mouvTimeout);
-            avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
-        }
     }
+    Timer3.detachInterrupt();
     stop();
     switch (sens) {
         case 0:
@@ -183,9 +192,9 @@ void seconde() {
     tempsEcoule++;
     Serial.print("Temps = ");
     Serial.println(tempsEcoule);
-    if (tempsEcoule >= DUREE_JEU) {
+    if (tempsEcoule == DUREE_JEU) {
         fin();
-        timer.disable(secondI);
+        Timer1.detachInterrupt();
     }
 }
 
@@ -211,7 +220,8 @@ void setup() {
 
     Serial.println("Tirette tirée. C'est parti !");
 
-    secondI = timer.setInterval(1000, seconde);
+    Timer1.initialize(); // Initialise timer1 à 1 seconde
+    Timer1.attachInterrupt(seconde);
 
     lireCote();
 
@@ -222,10 +232,9 @@ void setup() {
     y = 200;
     sens = 0;
 
-    // parcours();
+    parcours();
 
 }
 
 void loop() {
-    timer.run();
 }
