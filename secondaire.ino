@@ -89,11 +89,26 @@ void baisserBras() {
 
 // DIRECTION
 
+// Motor One
+#define enA 3
+#define IN1 7
+#define IN2 4
+
+// Motor Two
+#define enB 6
+#define IN3 2
+#define IN4 5
+
 float x, y;
 char sens; // [0-3], sens trigo
 
 void stop() {
-
+  digitalWrite (IN1, LOW);
+  digitalWrite (IN2, LOW);
+  digitalWrite (IN3, LOW);
+  digitalWrite (IN4, LOW);
+  analogWrite (enA, 0);
+  analogWrite (enB, 0);
 }
 
 int tempsRestant = 0;
@@ -112,7 +127,12 @@ void stepMouvement() {
 }
 
 void avance(float vitesse) {
-    // TODO
+    digitalWrite (IN1, HIGH);
+    digitalWrite (IN2, LOW);
+    digitalWrite (IN3, HIGH);
+    digitalWrite (IN4, LOW);
+    analogWrite (enA, 90);
+    analogWrite (enB, 60);
 }
 
 #define FREQ_ECH 100
@@ -167,18 +187,22 @@ void avancer(float dist) {
     Serial.println(")");
 }
 
-#define PUISSANCE_ROTATION 12
+#define PUISSANCE_ROTATION 200
 
 void tourne(bool sens) {
-    // Sens : true ↔ droite, false ↔ gauche
-    // TODO
+    digitalWrite (IN1, HIGH);
+    digitalWrite (IN2, LOW);
+    analogWrite (enA, 90);
+    digitalWrite (IN3, LOW);
+    digitalWrite (IN4, HIGH);
+    analogWrite (enB, 60);
 }
 
 // en secondes
 #define TEMPS_ANGLE_DROIT 0.4
 
 void tournerVraieDroite() {
-    tempsRestant = TEMPS_AGNGLE_DROIT * FREQ_ECH;
+    tempsRestant = TEMPS_ANGLE_DROIT * FREQ_ECH;
     Timer3.initialize(1E6 / FREQ_ECH);
     tourne(true);
     Timer3.attachInterrupt(stepMouvement);
@@ -189,7 +213,7 @@ void tournerVraieDroite() {
 }
 
 void tournerVraieGauche() {
-    tempsRestant = TEMPS_AGNGLE_DROIT * FREQ_ECH;
+    tempsRestant = TEMPS_ANGLE_DROIT * FREQ_ECH;
     Timer3.initialize(1E6 / FREQ_ECH);
     tourne(true);
     Timer3.attachInterrupt(stepMouvement);
@@ -268,6 +292,12 @@ void setup() {
     pinMode(PIN_ULT_AR_ECHO, INPUT);
     pinMode(PIN_ULT_BL_TRIG, OUTPUT);
     pinMode(PIN_ULT_BL_ECHO, INPUT);
+    pinMode(enA, OUTPUT);
+    pinMode(enB, OUTPUT);
+    pinMode(IN1, OUTPUT);
+    pinMode(IN2, OUTPUT);
+    pinMode(IN3, OUTPUT);
+    pinMode(IN4, OUTPUT);
     pont.attach(PIN_PONT);
 
     fermerPont();
