@@ -18,24 +18,26 @@ void lireCote() {
     bleu = digitalRead(PIN_COTE) == LOW;
 }
 
+#define SEUIL_OBSTACLE 120
+
 #define PIN_ULT_AV_TRIG 42
 #define PIN_ULT_AV_ECHO 42
-
-#define SEUIL_OBSTACLE 120
 bool capteurAvant() {
     digitalWrite(PIN_ULT_AV_TRIG , HIGH);
     delayMicroseconds(10);
     digitalWrite(PIN_ULT_AV_TRIG, LOW);
-    unsigned long lecture_echo = pulseIn(PIN_ULT_AV_ECHO, HIGH);
+    unsigned long lecture_echo = pulseIn(PIN_ULT_AV_ECHO, HIGH, 60);
     float mm = lecture_echo / 580;
     return mm < SEUIL_OBSTACLE;
 }
 
+#define PIN_ULT_AR_TRIG 42
+#define PIN_ULT_AR_ECHO 42
 bool capteurArriere() {
     digitalWrite(PIN_ULT_AR_TRIG , HIGH);
     delayMicroseconds(10);
     digitalWrite(PIN_ULT_AR_TRIG, LOW);
-    unsigned long lecture_echo = pulseIn(PIN_ULT_AR_ECHO, HIGH);
+    unsigned long lecture_echo = pulseIn(PIN_ULT_AR_ECHO, HIGH, 60);
     float mm = lecture_echo / 580;
     return mm < SEUIL_OBSTACLE;
 }
@@ -67,7 +69,7 @@ void baisserBras() {
 // DIRECTION
 
 float x, y;
-char dir; // [0-3], sens trigo
+char sens; // [0-3], sens trigo
 
 void stop() {
 
@@ -94,11 +96,12 @@ void avancer(float dist) {
     // Ou recule
     int temps = abs(VIT_RAPIDE * dist);
     bool marcheAvant = dist > 0;
-    avance(VIT_RAPIDE * (marcheAvant : 1 : -1));
+    avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
     mouvTimeout = timer.setTimeout(temps, finMouvement);
     enMouvement = true;
     bool obstacle;
     while (enMouvement) {
+        Serial.println(104);
         if (marcheAvant) {
             obstacle = capteurAvant();
         } else {
@@ -109,20 +112,59 @@ void avancer(float dist) {
             stop();
         } else {
             timer.enable(mouvTimeout);
-            avance(VIT_RAPIDE * (marcheAvant : 1 : -1));
+            avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
         }
     }
     stop();
+    switch (sens) {
+        case 0:
+            x += dist;
+            break;
+        case 1:
+            y += dist;
+            break;
+        case 2:
+            x -= dist;
+            break;
+        case 3:
+            y += dist;
+            break;
+    }
+    Serial.print("Position : (");
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(y);
+    Serial.println(")");
+}
+
+void tournerVraieDroite() {
+    // TODO
+}
+
+void tournerVraieGauche() {
+    // TODO
 }
 
 void tournerDroite() {
+    sens -= 1;
+    sens = sens % 4;
     Serial.println("Tourne à droite");
-
+    if (bleu) {
+        tournerVraieDroite();
+    } else {
+        tournerVraieGauche();
+    }
 }
 
 void tournerGauche() {
+    sens += 1;
+    sens = sens % 4;
     Serial.println("Tourne à gauche");
-
+    if (bleu) {
+        tournerVraieGauche();
+    } else {
+        tournerVraieDroite();
+    }
 }
 
 // GÉNÉRALES
@@ -148,10 +190,9 @@ void seconde() {
 }
 
 void parcours() {
-    avance(900-200);
+    avancer(800 - x);
     tournerDroite();
-
-
+    avancer(500 - y);
 }
 
 
@@ -177,7 +218,11 @@ void setup() {
     Serial.print("On est du côté ");
     Serial.println(bleu ? "bleu" : "jaune");
 
-    parcours();
+    x = 200;
+    y = 200;
+    sens = 0;
+
+    // parcours();
 
 }
 
