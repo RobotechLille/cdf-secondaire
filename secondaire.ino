@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <TimerOne.h>
 #include <TimerThree.h>
+#include <Servo.h>
 
 // CONVENTIONS
 // distances = mm
@@ -59,20 +60,29 @@ bool capteurBoule() {
 
 // ACTIONNEURS
 
-void ouvrirPontLevis() {
+Servo pont;
+#define PIN_PONT A0
 
+#define PONT_OUVERT 45
+void ouvrirPont() {
+    Serial.println("Ouverture du pont");
+    pont.write(PONT_OUVERT);
 }
 
-void fermerPontLevis() {
-
+#define PONT_FERME 135
+void fermerPont() {
+    Serial.println("Fermeture du pont");
+    pont.write(PONT_FERME);
 }
 
 void leverBras() {
+    Serial.println("Élévation du bras");
 
 }
 
 void baisserBras() {
     // Ça veut pas dire qu'il faut baisser les bras ! \o/
+    Serial.println("Baissage du bras");
 
 }
 
@@ -211,6 +221,7 @@ void parcours() {
     avancer(800 - x);
     tournerDroite();
     avancer(500 - y);
+    /* ouvrirPont(); */
 }
 
 
@@ -222,8 +233,18 @@ void setup() {
 
     pinMode(PIN_TIRETTE, INPUT);
     pinMode(PIN_COTE, INPUT);
+    pinMode(PIN_ULT_AV_TRIG, OUTPUT);
+    pinMode(PIN_ULT_AV_ECHO, INPUT);
+    pinMode(PIN_ULT_AR_TRIG, OUTPUT);
+    pinMode(PIN_ULT_AR_ECHO, INPUT);
+    pinMode(PIN_ULT_BL_TRIG, OUTPUT);
+    pinMode(PIN_ULT_BL_ECHO, INPUT);
+    pont.attach(PIN_PONT);
 
-    Serial.println("Setup terminé. Attente de la tirette");
+    fermerPont();
+    baisserBras();
+
+    Serial.println("Initialisation terminée. Attente de la tirette");
 
     attendreTirette();
 
