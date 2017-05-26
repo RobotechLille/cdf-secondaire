@@ -24,3 +24,5 @@ USER_LIB_PATH    := libraries
 ARDUINO_QUIET=true
 include Arduino-Makefile/Arduino.mk
 
+serial:
+	minicom -D $(MONITOR_PORT) -b 9600
