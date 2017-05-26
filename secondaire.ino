@@ -44,8 +44,17 @@ bool capteurArriere() {
     return mm < SEUIL_OBSTACLE;
 }
 
-bool capteurBoule() {
+#define SEUIL_BOULE 120
 
+#define PIN_ULT_BL_TRIG 42
+#define PIN_ULT_BL_ECHO 42
+bool capteurBoule() {
+    digitalWrite(PIN_ULT_BL_TRIG , HIGH);
+    delayMicroseconds(10);
+    digitalWrite(PIN_ULT_BL_TRIG, LOW);
+    unsigned long lecture_echo = pulseIn(PIN_ULT_BL_ECHO, HIGH, 60);
+    float mm = lecture_echo / 580;
+    return mm < SEUIL_BOULE;
 }
 
 // ACTIONNEURS
