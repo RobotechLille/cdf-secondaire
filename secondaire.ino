@@ -126,7 +126,8 @@ void stepMouvement() {
     }
 }
 
-void avance(float vitesse) {
+// void avance(float vitesse) {
+void avance() {
     digitalWrite (IN1, HIGH);
     digitalWrite (IN2, LOW);
     digitalWrite (IN3, HIGH);
@@ -153,7 +154,8 @@ void avancer(float dist) {
                 stop();
                 Timer3.detachInterrupt();
             } else {
-                avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
+                //avance(VIT_RAPIDE * (marcheAvant ? 1 : -1));
+                avance();
                 Timer3.attachInterrupt(stepMouvement);
             }
         }
@@ -190,11 +192,11 @@ void avancer(float dist) {
 #define PUISSANCE_ROTATION 200
 
 void tourne(bool sens) {
-    digitalWrite (IN1, HIGH);
-    digitalWrite (IN2, LOW);
+    digitalWrite (IN1, sens ? HIGH : LOW);
+    digitalWrite (IN2, sens ? LOW : HIGH);
     analogWrite (enA, 90);
-    digitalWrite (IN3, LOW);
-    digitalWrite (IN4, HIGH);
+    digitalWrite (IN3, sens ? LOW : HIGH);
+    digitalWrite (IN4, sens ? HIGH : LOW);
     analogWrite (enB, 60);
 }
 
@@ -268,13 +270,13 @@ void seconde() {
 }
 
 void parcours() {
-    avancer(1100 - 200);
-    tournerDroite();
-    avancer(700 - 200);
-    tournerDroite();
-    avancer(1100 - 1000);
-    tournerDroite();
-    avancer(700 - 0);
+    /* avancer(1100 - 200); */
+    /* tournerDroite(); */
+    /* avancer(700 - 200); */
+    /* tournerDroite(); */
+    /* avancer(1100 - 1000); */
+    /* tournerDroite(); */
+    /* avancer(700 - 0); */
 }
 
 
@@ -321,7 +323,13 @@ void setup() {
     y = 200;
     sens = 0;
 
-    parcours();
+    /* parcours(); */
+
+    // DEBUG
+    avance();
+    // tourne(true);
+    delay(10000);
+    stop();
 
 }
 
